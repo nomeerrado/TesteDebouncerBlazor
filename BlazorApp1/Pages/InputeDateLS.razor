@@ -1,0 +1,170 @@
+﻿@using System.Globalization
+@using System.Numerics
+@using System.Text.RegularExpressions
+@using System.Timers;
+
+<div class="@(MargemInferior ? "mb-3" : "") @(LabelNaEsquerda ? "row" : "")">
+	<label class="@(Label == null ? "d-none" : "") @(LabelNaEsquerda ? "col-sm-3 col-xl-2 col-form-label" : "")">@(Label ?? "")</label>
+
+	<div class="@(LabelNaEsquerda ? "col" : "")">
+		<input class="form-control @TextAllign "
+	  type="date"
+	  id=@Id
+	  disabled=@Disabled
+	  value=@(_value.ToString("dd/MM/yyyy"))
+	  placeholder=@Placeholder
+	  required=@Required
+	  onfocusin="this.select();"
+			   @onfocusout=@OnFocusOutEvent
+			   @onchange=@OnChangeEvent
+			   @onkeydown=@OnKeyDownEvent
+			   @onkeydown:preventDefault=@_preventDefault
+			   @oninput=@OnInputValueEvent
+			  />
+
+		@*@onpaste=@OnPasteEvent*@
+
+		@if (_currentValue == null && Required && _hasChanges)
+		{
+			<div class="validation-message">@ValidationMessage</div>
+		}
+
+		<span class="bottom-label @(BottomLabel == null ? "d-none" : "")">@(BottomLabel ?? "")</span>
+	</div>
+</div>
+
+@code
+{
+	[Parameter]
+	public string Id { get; set; } = string.Empty;
+
+	[Parameter]
+	public string Name { get; set; } = string.Empty;
+
+	[Parameter]
+	public string TextAllign { get; set; } = string.Empty;
+
+	[Parameter]
+	public bool Disabled { get; set; } = false;
+
+	[Parameter]
+	public bool MargemInferior { get; set; } = true;
+
+	[Parameter]
+	public string Placeholder { get; set; } = string.Empty;
+
+	[Parameter]
+	public bool Required { get; set; } = false;
+
+	[Parameter]
+	public string ValidationMessage { get; set; } = "Este campo não pode estar vazio.";
+
+	[Parameter]
+	public string? Label { get; set; } = null;
+
+	[Parameter]
+	public bool LabelNaEsquerda { get; set; } = false;
+
+	[Parameter]
+	public string? BottomLabel { get; set; } = null;
+
+	[Parameter]
+	public EventCallback<DateTime> DateValueChanged { get; set; }
+
+	[Parameter]
+	public DateTime DateValue
+	{
+		get => _dateValue;
+		set
+		{
+			if (_dateValue != value)
+			{
+				_dateValue = value;
+				_value = _dateValue;
+				_currentValue = _value;
+
+				_hasChanges = true;
+			}
+		}
+	}
+
+	[Parameter]
+	public EventCallback OnFocusOut { get; set; }
+
+	[Parameter]
+	public EventCallback OnKeyDown { get; set; }
+
+	private bool _preventDefault = false;
+
+	private DateTime _dateValue = DateTime.Now;
+
+	private bool _paste = false;
+
+	private DateTime? _currentValue;
+
+	private DateTime _value = DateTime.Now;
+
+	private bool _hasChanges = false;
+
+	private Timer? timerObj;
+
+	private ChangeEventArgs? lastArgs;
+
+	protected override void OnInitialized()
+	{
+		timerObj = new Timer(900);
+		timerObj.Elapsed += OnUserFinish;
+		timerObj.AutoReset = false;
+	}
+
+	public async Task OnFocusOutEvent() => await OnFocusOut.InvokeAsync();
+
+	public async Task OnKeyDownEvent(KeyboardEventArgs e)
+	{
+		_preventDefault = false;
+		await OnKeyDown.InvokeAsync();
+	}
+	
+	private void SetChangedValue(DateTime? value)
+	{
+		DateTime changedValue = DateTime.Now;
+		changedValue = value ?? DateTime.Now;
+		DateValue = changedValue;
+		return;
+	}
+
+	public void OnChangeEvent(ChangeEventArgs e)
+	{
+		lastArgs = e;
+		timerObj?.Stop();
+		timerObj?.Start();
+	}
+
+	private void OnInputValueEvent(ChangeEventArgs e)
+	{
+		lastArgs = e;
+		timerObj?.Stop();
+		timerObj?.Start();
+	}
+
+	//private void OnPasteEvent(ClipboardEventArgs e)
+	//{
+	//	_paste = true;
+	//}
+
+	//private DateTime ParseData(ChangeEventArgs e)
+	//{
+	//	var data = e.Value != null ? DateTime.Parse(e.Value.ToString()) : DateTime.UtcNow;
+	//	return data;
+	//}
+
+	private void OnUserFinish(Object? source, ElapsedEventArgs e)
+	{
+		InvokeAsync(() =>
+		{
+			var data = lastArgs?.Value != null ? DateTime.Parse(lastArgs!.Value!.ToString()) : DateTime.Now;
+			SetChangedValue(data);
+			//StateHasChanged();
+		});
+	}
+}

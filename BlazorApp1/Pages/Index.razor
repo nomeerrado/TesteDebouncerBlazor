@@ -1,0 +1,46 @@
+﻿@page "/"
+
+@using System.Timers;
+
+<h3>DATE</h3>
+@*<input id="dt_inicio" type="date" value="@dataValue2" @onchange="@OnValueChange2" />*@
+
+<InputeDateLS @bind-DateValue="@dataValue2" ></InputeDateLS>
+
+<p>@dataValue2</p>
+
+@code {
+	//protected override void OnInitialized()
+	//{
+	//	timerObj2 = new Timer(1500);
+	//	timerObj2.Elapsed += OnUserFinish2;
+	//	timerObj2.AutoReset = false;
+	//}
+
+	public DateTime dataValue2 { get; set; } = DateTime.Now;
+
+	//private string? Content3 { get; set; }
+	//private Timer? timerObj2;
+
+	//private ChangeEventArgs? tempArgs;
+
+	//private void OnValueChange2(ChangeEventArgs e)
+	//{
+	//	tempArgs = e;
+
+	//	// remove previous one
+	//	timerObj2?.Stop();
+	//	// new timer
+	//	timerObj2?.Start();
+	//}
+
+	//private void OnUserFinish2(Object? source, ElapsedEventArgs e)
+	//{
+	//	InvokeAsync(() =>
+	//	{
+	//		var data = tempArgs?.Value != null ? DateTime.Parse(tempArgs!.Value!.ToString()) : DateTime.Now;
+	//		Content3 = $"Data: {data}";
+	//		StateHasChanged();
+	//	});
+	//}
+}
